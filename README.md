@@ -29,8 +29,12 @@ Will currently run the setup() function when started. Note: some tokens in the n
 
 ## Endpoints
 /setup: initial server setup
+
 /update: update the database with new data from nft pools(no need for graphql endpoint) 
+
 /pools: get all pools
+
 /pools/:id: get pool by id
+
 /pools/:address get pool by address
 
