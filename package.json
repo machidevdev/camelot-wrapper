@@ -1,0 +1,19 @@
+{
+  "name": "server",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/node-cron": "^3.0.10",
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "hono": "^3.9.1",
+    "mongoose": "^8.0.0",
+    "node-cron": "^3.0.2",
+    "queue": "^7.0.0",
+    "viem": "^1.18.1"
+  }
+}
