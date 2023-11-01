@@ -4,6 +4,7 @@
 This server is made to handle camelot's data in a more organized way. 
 
 It grabs data from their nft pools enpoint and their graqhql endpoint and stores it in a database, giving names to the pools and the tokens.
+To implement: event listener on icp for newly whitelisted pools
 
 
 Stack: 
