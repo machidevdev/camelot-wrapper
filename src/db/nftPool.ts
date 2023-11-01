@@ -25,7 +25,7 @@ import mongoose from "mongoose";
 const poolSchema = new mongoose.Schema({
     poolEmissionRate:{
         type: String,
-        required: true
+        required: true,
     },
     totalDeposit:{
         type: String,
@@ -85,6 +85,12 @@ const poolSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    name:{
+        type: String,
+        required: true,
+        index: true
+    },
+    
 })
 
 
