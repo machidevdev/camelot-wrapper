@@ -12,20 +12,14 @@ mongoose.connect('mongodb+srv://admin:CurHwwz7V7LN9ns0@isekai.jwwg3iz.mongodb.ne
 mongoose.connection.on('error', console.error.bind(console, 'connection error:'));
 mongoose.connection.once('open', function () {
   console.log("connected to db")
-  app.listen(8000, () => {
-    console.log("listening on port 8000")
+  app.listen(8080, () => {
+    console.log("listening on port 8080")
   } )
 })
 
 
 
 
-
-
-app.get('/update', async (req, res) => {
-  await update()
-  res.send("updated")
-})
 
 
 app.get("/pool/:address", async (req, res) => {
