@@ -1,7 +1,6 @@
 import mongoose from "mongoose"
 import Pool from "./db/nftPool"
 import express from "express"
-import update from "../update"
 
 
 
