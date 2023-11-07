@@ -1,59 +1,47 @@
-import { Hono } from 'hono'
 import mongoose from "mongoose"
 import Pool from "./db/nftPool"
-import { logger } from 'hono/logger'
-import { cors } from 'hono/cors'
+import express from "express"
 import update from "../update"
 
 
 
+const app = express()
 
 
 
-
-const app = new Hono()
-app.use('*', logger())
 mongoose.connect('mongodb+srv://admin:CurHwwz7V7LN9ns0@isekai.jwwg3iz.mongodb.net/');
 mongoose.connection.on('error', console.error.bind(console, 'connection error:'));
 mongoose.connection.once('open', function () {
   console.log("connected to db")
+  app.listen(8000, () => {
+    console.log("listening on port 8000")
+  } )
 })
 
 
 
 
-app.get('/setup', (c) => {
-  return c.text('ok')
-})
-
-app.get("/", (c) => {
-  return c.text('ok')
-})
 
 
-
-app.get('/update', async (c) => {
+app.get('/update', async (req, res) => {
   await update()
-  return c.text('updated')
+  res.send("updated")
 })
 
 
-app.get("/pool/:address", async (c) => {
-  const pool = await Pool.findOne({ address: c.req.param("address")})
-  console.log(c.req.param("address"))
-  console.log(pool)
-  return c.json(pool)
+app.get("/pool/:address", async (req, res) => {
+  const pool = await Pool.findOne({ address: req.params.address})
+  res.json(pool)
 })
 
-app.get("/pools", async (c) => {
+app.get("/pools", async (req, res) => {
   const pools = await Pool.find({})
-  return c.json(pools)
+  res.json(pools)
 })
 
 //get pools, paginate
-app.get("/pools/:page", async (c) => {
-  const pools = await Pool.find({}).sort({tvlUSD:-1}).skip(parseInt(c.req.param("page")) * 10).limit(10)
-  return c.json(pools)
+app.get("/pools/:page", async (req, res) => {
+  const pools = await Pool.find({}).sort({tvlUSD:-1}).skip(parseInt(req.params.page) * 10).limit(10)
+  return res.json(pools)
 })
 
-export default app
