@@ -1,4 +1,4 @@
-import { NFTPools, NftPool } from "./src/types"
+/*import { NFTPools, NftPool } from "./src/types"
 import mongoose from "mongoose"
 import Pool from "./src/db/nftPool"
 export default async function update() {
@@ -9,4 +9,4 @@ export default async function update() {
     Object.values(poolsData.data.nftPools).forEach((pool: NftPool) => {
       
     })
-}
+}*/
