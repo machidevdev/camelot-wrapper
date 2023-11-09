@@ -9,23 +9,28 @@ To implement: event listener on icp for newly whitelisted pools
 
 Stack: 
 - Typescript
-- Bun
+- express
 - Mongoose w/mongodb atlas as provider
 
 
 To install dependencies:
 
 ```bash
-bun install
+npm install
 ```
 
 To run:
 
 ```bash
-bun run src/index.ts
+npm run dev
 ```
 
-Will currently run the setup() function when started. Note: some tokens in the nft pools are not token pairs but sigle tokens(need to handle this)
+Production:
+```bash
+npm run start
+```
+
+
 
 
 ## Endpoints
