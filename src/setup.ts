@@ -1,73 +1,44 @@
 import { NFTPools, NftPool, tokenSymbolsType } from "./types"
-import Pool from "./db/nftPool"
+import { calculateAPR, fetchTokenSymbols } from "./utils";
+const CAMELOT_API_URL = "https://api.camelot.exchange/v2/nft-pools";
 
 
 
-function createGraphQlCall(address: string) {
-    return `query TokenQuery{
-        pair(id: "${address}") {
-          id
-            token0 {
-              name
-            }
-            token1 {
-              name
-            }
-        }
-      }`
+
+
+
+
+
+
+
+
+async function addPoolToDB(pool: NftPool, index: number, length: number) {
+  console.log(`[${index}/${length}]: adding pool: ${pool.depositToken}`);
+  const tokenSymbolsData = await fetchTokenSymbols(pool.depositToken);
+  if (tokenSymbolsData) {
+    const apr = await calculateAPR(pool);
+    console.log(`APR for ${pool.address}: ${apr}`)
+    // The rest of the logic to add the pool to the database goes here.
+    // ...
+    // Don't forget to handle any errors or exceptions.
+  }
 }
-
 
 export default async function setup() {
-    //queue to fetch token symbols from camelot graphql api and add them to the db with pool info
-    console.log("setting up db list...")
-    //add all tokens to the db
-    const nftPools = await fetch("https://api.camelot.exchange/v2/nft-pools")
-    const poolsData = await nftPools.json() as NFTPools
-
-    const length = Object.values(poolsData.data.nftPools).length
-    Object.values(poolsData.data.nftPools).forEach(async (pool: NftPool, index) => {
-            setTimeout(async () => {
-                if(pool.tvlUSD > 0 && pool.isFarm){
-                    console.log(`[${index}/${length}]: adding pool: ${pool.depositToken}`)
-                    const grahqplCall = createGraphQlCall(pool.depositToken.toLowerCase())
-    
-                    const tokenSymbols = await fetch("https://api.thegraph.com/subgraphs/name/camelotlabs/camelot-amm", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ query: grahqplCall })
-                    })
-                    const tokenSymbolsData = await tokenSymbols.json() as tokenSymbolsType
-                    const newPool = new Pool({
-                        poolEmissionRate: pool.poolEmissionRate,
-                        isFarm: pool.isFarm,
-                        totalDeposit: pool.totalDeposit,
-                        allocPoint: pool.allocPoint,
-                        totalDepositWithMultiplier: pool.totalDepositWithMultiplier,
-                        maxGlobalMultiplier: pool.maxGlobalMultiplier,
-                        maxLockDuration: pool.maxLockDuration,
-                        maxLockMultiplier: pool.maxLockMultiplier,
-                        maxBoostMultiplier: pool.maxBoostMultiplier,
-                        xGrailRewardsShare: pool.xGrailRewardsShare,
-                        totalBoostAllocated: pool.totalBoostAllocated,
-                        address: pool.address,
-                        depositToken: pool.depositToken,
-                        emergencyUnlock: pool.emergencyUnlock,
-                        tvlUSD: pool.tvlUSD,
-                        minIncentivesApr: pool.minIncentivesApr,
-                        maxIncentivesApr: pool.maxIncentivesApr,
-                        name: tokenSymbolsData.data.pair.token0.name + "/" + tokenSymbolsData.data.pair.token1.name
-                    })
-                    await newPool.save()
-                    console.log(`[${index}/${length}]: saved pool: ${tokenSymbolsData.data.pair.token0.name + "/" + tokenSymbolsData.data.pair.token1.name}`)
-                }
-                else{
-                    console.log("skipping pool: " + pool.depositToken)
-                }
-                
-            }, index * 2000); //index * 2000 to avoid possible rate limiting
-    })
-
-}
+    console.log("Setting up db list...");
+    const response = await fetch(CAMELOT_API_URL);
+    if (!response.ok) {
+      throw new Error(`Error fetching pools: ${response.status}`);
+    }
+    const poolsData = (await response.json()) as NFTPools;
+    const pools = Object.values(poolsData.data.nftPools).filter(pool => pool.tvlUSD > 0 && pool.isFarm);
+  
+    for (let i = 0; i < pools.length; i++) {
+      try {
+        await addPoolToDB(pools[i], i + 1, pools.length);
+      } catch (error) {
+        console.error(`Error processing pool ${pools[i].depositToken}: ${error}`);
+      }
+    }
+    console.log("All pools have been processed.");
+  }

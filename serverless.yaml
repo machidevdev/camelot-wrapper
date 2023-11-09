@@ -1,0 +1,29 @@
+service: my-typescript-express-app
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: prod
+  region: us-east-1
+
+functions:
+  app:
+    handler: build/index.handler # point to the compiled JavaScript file
+    events:
+      - http:
+          path: /
+          method: any
+      - http:
+          path: /{proxy+}
+          method: any
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-typescript
+
+package:
+  include:
+    - build/** # include compiled files
+  exclude:
+    - node_modules/** # exclude all node_modules
+    - src/** # exclude TypeScript source files
