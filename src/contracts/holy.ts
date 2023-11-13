@@ -1,5 +1,5 @@
 const holy = {
-    address: "0xd6A19Fe3AAaf2D705F2B16aAa6d9F1f8bcC57B73",
+    address: "0xd6A19Fe3AAaf2D705F2B16aAa6d9F1f8bcC57B73" as `0x${string}`,
     abi:  [
         {
           "inputs": [],

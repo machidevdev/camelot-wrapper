@@ -12,14 +12,21 @@ functions:
     events:
       - http:
           path: /
-          method: any
+          method: get
       - http:
           path: /{proxy+}
           method: any
+  setup:
+    handler: build/index.handler # point to the compiled JavaScript file
+    timeout: 500 # in seconds
+    events:
+      - http:
+          path: /setup
+          method: get
 
 plugins:
   - serverless-offline
-  - serverless-plugin-typescript
+  - serverless-dotenv-plugin
 
 package:
   include:
