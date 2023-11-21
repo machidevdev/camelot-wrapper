@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npm run build && npx serverless offline",
+    "dev": "npm run build && npx serverless offline --httpPort 3001",
     "build": "rimraf ./build && tsc",
     "start": "npm run build && node build/index.js"
   },
@@ -27,6 +27,7 @@
     "mongoose": "^8.0.0",
     "serverless-dotenv-plugin": "^6.0.0",
     "serverless-http": "^3.2.0",
-    "viem": "1.10"
+    "viem": "1.10",
+    "zod": "^3.22.4"
   }
 }

@@ -26,7 +26,7 @@ export const tokenDataCache : Cache = {
 }
 
 
-function createGraphQlCall(address: string) {
+function getTokenPairByAddress(address: string) {
   return `query TokenQuery{
     pair(id: "${address}") {
       id
@@ -48,7 +48,7 @@ export async function fetchTokenSymbols(address: string): Promise<tokenSymbolsTy
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query: createGraphQlCall(address.toLowerCase()) }),
+      body: JSON.stringify({ query: getTokenPairByAddress(address.toLowerCase()) }),
     });
 
     if (response.status === 429) {

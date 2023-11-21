@@ -6,6 +6,8 @@ import serverlessHttp from 'serverless-http';
 import { connectToDatabase } from "./db/connection";
 import dotenv from "dotenv"
 import { tokenPriceCache, updatePriceCache } from "./utils/utils";
+import { viemClient } from "./client";
+import update from "./update";
 dotenv.config()
 const app = express()
 
@@ -21,8 +23,10 @@ app.use(async (req, res, next) => {
 });
 
 
-app.get("/hello", (req, res) => {
-  res.send("hello world")
+app.get("/block", (req, res) => {
+  viemClient.getBlockNumber().then(block => {
+    res.json(Number(block))
+   })
 })
 
 
@@ -50,6 +54,16 @@ app.get("/setup", async (req, res) => {
     console.error(e)
     res.send("error setting up pools!")
   }
+})
+
+app.get("/update", async (req, res) => {
+  try{
+    const pools = await update()
+    res.send(pools)
+  }catch(e){
+    res.send("error updating pools!" +  e)
+  }
+  
 })
 
 
