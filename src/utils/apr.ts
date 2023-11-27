@@ -1,8 +1,8 @@
-import { viemClient } from "../client";
+import { getViemClient } from "../viemClient";
 import holy from "../contracts/holy";
-import holyEthOracle from "../contracts/holyEth";
-import { NftPool, NitroPool } from "../types";
 import { fetchTokenPrice } from "./utils";
+import { mirrorPoolType } from "../schemas/mirrorPoolSchema";
+import { nitroPoolType } from "../schemas/nitroPoolSchema";
 
 const GRAIL_ADDRESS = "0x3d9907F9a368ad0a51Be60f7Da3b97cf940982D8"
 
@@ -19,7 +19,8 @@ async function calculateTokenValueUsd(tokenAddress: string, tokenAmountPerYear: 
 }
 
 // Calculate APR Value
-async function calculateAPRValue(pool: NftPool, emissionRatePerYear: number): Promise<number> {
+async function calculateAPRValue(pool: mirrorPoolType, emissionRatePerYear: number): Promise<number> {
+  const viemClient = getViemClient()
   const holyShare = emissionRatePerYear / (pool.xGrailRewardsShare / 100);
   const grailShare = emissionRatePerYear - holyShare;
 
@@ -38,7 +39,7 @@ async function calculateAPRValue(pool: NftPool, emissionRatePerYear: number): Pr
 }
 
 // Calculate APR
-async function calculateAPR(pool: NftPool): Promise<{ baseAPR: number | null, maxAPR: number | null }> {
+async function calculateAPR(pool: mirrorPoolType): Promise<{ baseAPR: number | null, maxAPR: number | null }> {
   try {
     const baseEmissionRatePerYear = Number(pool.poolEmissionRate) * SECONDS_IN_YEAR;
     const baseAPRValue = await calculateAPRValue(pool, baseEmissionRatePerYear);
@@ -54,7 +55,7 @@ async function calculateAPR(pool: NftPool): Promise<{ baseAPR: number | null, ma
 }
 
 // Calculate Nitro APR
-export async function calculateNitroApr(pool: NitroPool): Promise<number> {
+export async function calculateNitroApr(pool: nitroPoolType): Promise<number> {
   let totalApr = 0;
 
   const rewardsToken1PerYear = Number(pool.rewardsToken1PerSecond) * SECONDS_IN_YEAR;
@@ -66,7 +67,6 @@ export async function calculateNitroApr(pool: NitroPool): Promise<number> {
     const rewardsToken2Apr = await calculateTokenValueUsd(pool.rewardsToken2, rewardsToken2PerYear) / pool.tvlUSD;
     totalApr += rewardsToken2Apr;
   }
-  console.log(`Nitro APR for ${pool.nftPool} is ${totalApr * 100}`);
   return totalApr * 100;
 }
 

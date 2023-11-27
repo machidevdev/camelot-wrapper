@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { nitroPoolSchema } from './nitroPoolSchema';
 
 const mirrorPoolSchema = z.object({
   poolEmissionRate: z.string(),
@@ -17,21 +18,22 @@ const mirrorPoolSchema = z.object({
   emergencyUnlock: z.boolean(),
   tvlUSD: z.number(),
   minIncentivesApr: z.number(),
-  maxIncentivesApr: z.number()
+  maxIncentivesApr: z.number(),
+  nitro: z.optional(nitroPoolSchema)
 });
 
 const mirrorPoolsSchema = z.record(z.string(), mirrorPoolSchema);
 
 const dataSchema = z.object({
   lastSync: z.number(),
-  nftPools: mirrorPoolSchema
+  nftPools: mirrorPoolsSchema
 });
 
 const mirrorSchema = z.object({
   data: dataSchema
 });
 
-type mirrorPoolType = z.infer<typeof mirrorSchema>
+type mirrorPoolType = z.infer<typeof mirrorPoolSchema>
 
 
 export { mirrorPoolSchema, mirrorPoolsSchema, dataSchema, mirrorSchema, mirrorPoolType  }

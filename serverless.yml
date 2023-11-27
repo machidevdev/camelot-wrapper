@@ -1,0 +1,42 @@
+service: backend-api
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  param:
+    handler: src/handler.param
+
+  pools:
+    handler: src/handler.pools
+    events:
+      - http:
+          path: pools
+          method: get
+    timeout: 10 # in seconds
+
+  getAddress:
+    handler: src/handler.getPoolByAddress
+    events:
+      - http:
+          path: pools/{address}
+          method: GET
+    timeout: 10 # in seconds
+
+  search:
+    handler: src/handler.search
+    events:
+      - http:
+          path: search
+          method: POST
+
+plugins:
+  - serverless-esbuild
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+custom:
+  serverless-offline:
+    httpPort: 4000

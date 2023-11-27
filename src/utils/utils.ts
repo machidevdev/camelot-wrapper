@@ -1,32 +1,30 @@
-import Pool from "../db/nftPool"
-import master from "../contracts/master"
-import spNftAbi from "../contracts/abis/spNft"
-import { viemClient } from "../client"
 import holy from "../contracts/holy"
 import holyEthOracle from "../contracts/holyEth"
-import { NftPool, Cache, tokenStatListType, tokenStatType, tokenDataRequestType, tokenDataType, tokenSymbolsType, NitroPool } from "../types"
-import mongoose, { mongo } from "mongoose"
+import { getViemClient } from "../viemClient"
+import { Token, poolModel } from "../schemas/poolSchema"
+import { calculateAPR, calculateNitroApr } from "./apr"
+import { lpResponseSchema, lpResponseType } from "../schemas/lpResponseSchema"
+import { mirrorPoolType } from "../schemas/mirrorPoolSchema"
+import fetchAndValidate from "../validations/fetchAndValidate"
+import { tokenPriceResponseSchema, tokenPriceType } from "../schemas/tokenPriceResponseSchema"
+import { tokenDataResponseSchema, tokenDataType } from "../schemas/tokenDataResponseSchema"
+import { nitroPoolType } from "../schemas/nitroPoolSchema"
 
 const PRICE_CACHE_DURATION = 600000; // 10 minutes in milliseconds
-const COINGECKO_API_URL = "https://api.coingecko.com/api/v3/simple/price";
-const CAMELOT_API_URL = "https://api.camelot.exchange/v2/nft-pools";
-const GRAPH_API_URL = "https://api.thegraph.com/subgraphs/name/camelotlabs/camelot-amm";
-const TOKEN_STATS_URL = "https://api.camelot.exchange/v2/tokens"
-const TOKEN_DATA_URL = "https://token-list.camelot.exchange/tokens.json"
 const WETH = "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1".toLowerCase()
 
-export const tokenPriceCache: Cache = {
-  timestamp: null,
-  data: new Map(),
+export const tokenPriceCache = {
+  timestamp: 0,
+  data: new Map<string, number>(),
 };
 
-export const tokenDataCache : Cache = {
-  timestamp: null,
-  data: new Map(),
+export const tokenDataCache = {
+  timestamp: 0,
+  data: new Map<string, tokenDataType>(),
 }
 
 
-function getTokenPairByAddress(address: string) {
+function createGraphQlCall(address: string) {
   return `query TokenQuery{
     pair(id: "${address}") {
       id
@@ -41,28 +39,27 @@ function getTokenPairByAddress(address: string) {
 }
 
 //get token symbols from lp address
-export async function fetchTokenSymbols(address: string): Promise<tokenSymbolsType | null> {
+export async function fetchTokenSymbols(address: string): Promise<lpResponseType> {
   try {
-    const response = await fetch(GRAPH_API_URL, {
+    const response = await fetch(process.env.GRAPHQL_TOKEN_ENDPOINT || "", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query: getTokenPairByAddress(address.toLowerCase()) }),
+      body: JSON.stringify({ query: createGraphQlCall(address.toLowerCase()) }),
     });
 
     if (response.status === 429) {
-      console.error("Rate limited...");
-      return null;
+      throw new Error("Rate limit exceeded");
     } else if (response.status !== 200) {
-      console.error(`Error fetching token symbols: ${response.status}`);
-      return null;
+      throw new Error(`HTTP error ${response.status}`);
     }
 
-    return await response.json() as tokenSymbolsType;
+    const symbols = await response.json();
+    return lpResponseSchema.parse(symbols)
+
   } catch (error) {
-    console.error(`Error fetching token symbols: ${error}`);
-    return null;
+    throw new Error(`Error fetching token symbols for address ${address}: ${error}`);
   }
 }
 
@@ -75,16 +72,10 @@ export async function updateTokenDataCache() {
     return;
   }
 
-  const response = await fetch(TOKEN_DATA_URL);
-  const tokenList = await response.json() as tokenDataRequestType;
+  const tokenList = await fetchAndValidate(process.env.TOKENS_DATA_ENDPOINT || "", tokenDataResponseSchema);
   tokenDataCache.timestamp = now;
   tokenList.tokens.forEach(token => {
-    tokenDataCache.data.set(token.address.toLowerCase(), {
-      symbol: token.symbol,
-      name: token.name,
-      decimals: token.decimals,
-      logoURI: token.logoURI,    
-    })
+    tokenDataCache.data.set(token.address.toLowerCase(), token)
   })
   return tokenDataCache;
 }
@@ -93,24 +84,23 @@ export async function updateTokenDataCache() {
 
 export async function updatePriceCache() {
   const now = Date.now();
-
+  const viemClient = getViemClient()
   if (tokenPriceCache.timestamp && (now - tokenPriceCache.timestamp < PRICE_CACHE_DURATION)) {
     //console.log("Cache is still valid");
     return;
   }
 
-  const response = await fetch('https://api.camelot.exchange/v2/tokens');
-  const tokenList = await response.json() as tokenStatListType;
+  const tokenList = await fetchAndValidate(process.env.TOKENS_PRICE_ENDPOINT || "", tokenPriceResponseSchema)
   const holyEthPrice = await viemClient.readContract({
     address: holyEthOracle.address as `0x${string}`,
     abi: holyEthOracle.abi,
     functionName: "getSpot",
   });
   tokenPriceCache.timestamp = now;
-  const filtered = Object.values(tokenList.data.tokens).filter(token => {
+  const filtered = Object.values(tokenList.data.tokens).filter((token: tokenPriceType) => {
     return token.price != 0 && token.tvlUSD != 0 && token.volumeUSD != 0
   })
-  filtered.forEach(token => {
+  filtered.forEach((token: tokenPriceType) => {
     tokenPriceCache.data.set(token.address.toLowerCase(), token.price)
   })
   const holyUsdPrice = Number(holyEthPrice) * Number(tokenPriceCache.data.get(WETH));
@@ -132,7 +122,7 @@ async function fetchTokenPrice(address: string): Promise<number | null> {
   }
 }
 
-async function fetchTokenData(address:string) {
+async function fetchTokenData(address: string) {
   await updateTokenDataCache();
   const tokenData = tokenDataCache.data.get(address.toLowerCase());
   return tokenData;
@@ -187,11 +177,11 @@ export async function fetchLPData(lpAddress: string) {
 
 
 
-export async function fetchNitroTokenData(nitro:NitroPool) {
+export async function fetchNitroTokenData(nitro: nitroPoolType):Promise<Token[]> {
   const token1Data = await fetchTokenData(nitro.rewardsToken1);
-  if(nitro.rewardsToken2 != "0x00"){
+  if (nitro.rewardsToken2 != "0x00") {
     const token2Data = await fetchTokenData(nitro.rewardsToken2);
-    if(token1Data && token2Data){
+    if (token1Data && token2Data) {
       return [
         {
           address: nitro.rewardsToken1,
@@ -207,23 +197,64 @@ export async function fetchNitroTokenData(nitro:NitroPool) {
     }
 
   }
-  else{
+  //token1 always exists, while token2 is not always present
+  if (!token1Data) {
+    throw new Error(`Token data not found in cache for Token0 with address: ${nitro.rewardsToken1}`);
+    
+  }
+  else {
     return [
       {
         address: nitro.rewardsToken1,
-        symbol: token1Data.symbol,
-        image: token1Data.logoURI,
+        symbol: token1Data?.symbol,
+        image: token1Data?.logoURI,
       },
     ];
   }
-  //token1 always exists, while token2 is not always present
-  if (!token1Data) {
-    console.error(`Token data not found in cache for Token0 with address: ${nitro.rewardsToken1}`);
-    return null;
+
+}
+
+
+
+export async function addPoolToDB(pool: mirrorPoolType) {
+  //check if pool has nitro first of all. if it does, calculate min-max base apr and nitro aprs. if not, only base apr
+  //also get all token symbols needed for pool
+  let nitroAPR = 0;
+  const { baseAPR, maxAPR } = await calculateAPR(pool);
+  const lpData = await fetchLPData(pool.depositToken);
+  let nitroTokenData: Token[] = []
+  if (pool.nitro) {
+    nitroAPR = await calculateNitroApr(pool.nitro);
+    nitroTokenData = await fetchNitroTokenData(pool.nitro);
+
   }
+  const p = new poolModel({
+    name: lpData ? lpData[0].symbol + "-" + lpData[1].symbol : "Unknown",
+    address: pool.address,
+    isNitro: pool.nitro ? true : false,
+    depositToken: pool.depositToken,
+    minAPR: baseAPR,
+    maxAPR: maxAPR,
+    nitroAPR: nitroAPR,
+    lpTokens: lpData,
+    nitroTokens: nitroTokenData,
+    tvlUSD: 0,
+    bonusShare: pool.xGrailRewardsShare
+  })
+  await p.save()
+  console.log(`Added ${pool.depositToken} to db`)
+
+}
 
 
 
+export async function updatePoolInDB(pool: mirrorPoolType) {
+  //update aprs and tvl
+  const { baseAPR, maxAPR } = await calculateAPR(pool);
+  if (pool.nitro) {
+    const nitroAPR = await calculateNitroApr(pool.nitro);
+    await poolModel.updateOne({ address: pool.address }, { minAPR: baseAPR, maxAPR: maxAPR, nitroAPR: nitroAPR })
+  }
 }
 
 // A helper function to delay the execution
