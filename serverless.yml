@@ -1,3 +1,5 @@
+org: machidevdev
+app: backend-api
 service: backend-api
 frameworkVersion: '3'
 
@@ -6,15 +8,13 @@ provider:
   runtime: nodejs18.x
 
 functions:
-  param:
-    handler: src/handler.param
-
   pools:
     handler: src/handler.pools
     events:
       - http:
           path: pools
           method: get
+          cors: true
     timeout: 10 # in seconds
 
   getAddress:
@@ -23,6 +23,7 @@ functions:
       - http:
           path: pools/{address}
           method: GET
+          cors: true
     timeout: 10 # in seconds
 
   search:
@@ -31,6 +32,11 @@ functions:
       - http:
           path: search
           method: POST
+          cors: true
+
+  sync:
+    handler: src/handler.sync
+    timeout: 500 # in seconds
 
 plugins:
   - serverless-esbuild

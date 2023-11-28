@@ -16,6 +16,11 @@ export const pools = async (): Promise<unknown> => {
     const pools = await poolModel.find({});
     return {
       statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*", // Adjust this to allow specific origins
+        "Access-Control-Allow-Credentials": true,
+        // Add other CORS headers as needed
+      },
       body: JSON.stringify({
         message: pools
       })
@@ -50,12 +55,17 @@ export const getPoolByAddress = async (event: APIGatewayEvent): Promise<APIGatew
 
       return {
         statusCode: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*", // Adjust this to allow specific origins
+          "Access-Control-Allow-Credentials": true,
+          // Add other CORS headers as needed
+        },
         body: JSON.stringify({ poolByAddress }),
       };
     } else {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Internal Server Error: connection failed '}),
+        body: JSON.stringify({ error: 'Internal Server Error: connection failed ' }),
       };
     }
   } catch (error) {
@@ -83,6 +93,11 @@ export const search = async (event: APIGatewayEvent): Promise<APIGatewayProxyRes
 
     return {
       statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*", // Adjust this to allow specific origins
+        "Access-Control-Allow-Credentials": true,
+        // Add other CORS headers as needed
+      },
       body: JSON.stringify({ filteredPools }),
     };
   } catch (error) {
@@ -98,6 +113,8 @@ export const search = async (event: APIGatewayEvent): Promise<APIGatewayProxyRes
 
 
 
+
+//this one has to be called every 5 minutes or so from cloudwatch
 export const sync = async (): Promise<APIGatewayProxyResult> => {
   await syncData();
   return {

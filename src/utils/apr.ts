@@ -1,21 +1,25 @@
 import { getViemClient } from "../viemClient";
 import holy from "../contracts/holy";
-import { fetchTokenPrice } from "./utils";
+import { fetchTokenPrice, tokenDataCache, updateTokenDataCache } from "./utils";
 import { mirrorPoolType } from "../schemas/mirrorPoolSchema";
 import { nitroPoolType } from "../schemas/nitroPoolSchema";
 
 const GRAIL_ADDRESS = "0x3d9907F9a368ad0a51Be60f7Da3b97cf940982D8"
 
-
-
 // Constants
 const SECONDS_IN_YEAR = 31536000;
-const DECIMALS = Math.pow(10, 18);
 
 // Helper function to calculate token value in USD
+//TODO: DECIMALS!!!
 async function calculateTokenValueUsd(tokenAddress: string, tokenAmountPerYear: number): Promise<number> {
-  const tokenPrice = await fetchTokenPrice(tokenAddress);
-  return Number(tokenPrice) * tokenAmountPerYear / DECIMALS;
+  await updateTokenDataCache()
+  const {decimals} = tokenDataCache.data.get(tokenAddress) || {decimals: 18}
+  try {
+    const tokenPrice = await fetchTokenPrice(tokenAddress);
+    return Number(tokenPrice) * tokenAmountPerYear / decimals;
+  } catch (error) {
+    throw new Error(`Error calculating token value for ${tokenAddress}: ${error}`);
+   }
 }
 
 // Calculate APR Value
@@ -35,7 +39,7 @@ async function calculateAPRValue(pool: mirrorPoolType, emissionRatePerYear: numb
   const holyValueUsd = await calculateTokenValueUsd(holy.address, Number(holyAmount));
 
   // Minimum APR
-  return (grailValueUsd + holyValueUsd) / pool.tvlUSD / Math.pow(10,16); //10**18 then * 100 to get percentage
+  return (grailValueUsd + holyValueUsd) / pool.tvlUSD / Math.pow(10, 16); //10**18 then * 100 to get percentage
 }
 
 // Calculate APR

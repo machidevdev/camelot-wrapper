@@ -69,11 +69,12 @@ const mongoosePoolSchema = new mongoose.Schema({
     nitroTokens: [mongooseTokenSchema]
 })
 
-
+const tokenModel = mongoose.model("Token", mongooseTokenSchema);
 const poolModel = mongoose.model("NftPool", mongoosePoolSchema);
+
 
 // Types for TypeScript inference, if needed
 type Token = z.infer<typeof tokenSchema>;
 type Pool = z.infer<typeof poolSchema>;
 
-export { tokenSchema, poolSchema, Token, Pool, poolModel};
+export { tokenSchema, poolSchema, Token, Pool, poolModel, tokenModel};

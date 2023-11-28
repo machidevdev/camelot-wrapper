@@ -6,9 +6,10 @@ import { calculateAPR, calculateNitroApr } from "./apr"
 import { lpResponseSchema, lpResponseType } from "../schemas/lpResponseSchema"
 import { mirrorPoolType } from "../schemas/mirrorPoolSchema"
 import fetchAndValidate from "../validations/fetchAndValidate"
-import { tokenPriceResponseSchema, tokenPriceType } from "../schemas/tokenPriceResponseSchema"
+import { tokenPriceResponseSchema } from "../schemas/tokenPriceResponseSchema"
 import { tokenDataResponseSchema, tokenDataType } from "../schemas/tokenDataResponseSchema"
 import { nitroPoolType } from "../schemas/nitroPoolSchema"
+import { config } from "../config"
 
 const PRICE_CACHE_DURATION = 600000; // 10 minutes in milliseconds
 const WETH = "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1".toLowerCase()
@@ -24,7 +25,7 @@ export const tokenDataCache = {
 }
 
 
-function createGraphQlCall(address: string) {
+function getTokenPairByAddress(address: string) {
   return `query TokenQuery{
     pair(id: "${address}") {
       id
@@ -39,14 +40,15 @@ function createGraphQlCall(address: string) {
 }
 
 //get token symbols from lp address
+//not using fetchAndValidate because it's a kind of custom query, checking only after the fact if the response is valid
 export async function fetchTokenSymbols(address: string): Promise<lpResponseType> {
   try {
-    const response = await fetch(process.env.GRAPHQL_TOKEN_ENDPOINT || "", {
+    const response = await fetch(config.graphqlTokenEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query: createGraphQlCall(address.toLowerCase()) }),
+      body: JSON.stringify({ query: getTokenPairByAddress(address.toLowerCase()) }),
     });
 
     if (response.status === 429) {
@@ -72,7 +74,7 @@ export async function updateTokenDataCache() {
     return;
   }
 
-  const tokenList = await fetchAndValidate(process.env.TOKENS_DATA_ENDPOINT || "", tokenDataResponseSchema);
+  const tokenList = await fetchAndValidate(config.tokensDataEndpoint, tokenDataResponseSchema);
   tokenDataCache.timestamp = now;
   tokenList.tokens.forEach(token => {
     tokenDataCache.data.set(token.address.toLowerCase(), token)
@@ -90,17 +92,18 @@ export async function updatePriceCache() {
     return;
   }
 
-  const tokenList = await fetchAndValidate(process.env.TOKENS_PRICE_ENDPOINT || "", tokenPriceResponseSchema)
+  const tokenList = await fetchAndValidate(config.tokensPriceEndpoint, tokenPriceResponseSchema)
   const holyEthPrice = await viemClient.readContract({
     address: holyEthOracle.address as `0x${string}`,
     abi: holyEthOracle.abi,
     functionName: "getSpot",
   });
+  console.log("holyEthPrice: ", holyEthPrice)
   tokenPriceCache.timestamp = now;
-  const filtered = Object.values(tokenList.data.tokens).filter((token: tokenPriceType) => {
+  const filtered = Object.values(tokenList.data.tokens).filter((token) => {
     return token.price != 0 && token.tvlUSD != 0 && token.volumeUSD != 0
   })
-  filtered.forEach((token: tokenPriceType) => {
+  filtered.forEach((token) => {
     tokenPriceCache.data.set(token.address.toLowerCase(), token.price)
   })
   const holyUsdPrice = Number(holyEthPrice) * Number(tokenPriceCache.data.get(WETH));
@@ -117,8 +120,7 @@ async function fetchTokenPrice(address: string): Promise<number | null> {
   if (tokenData) {
     return tokenData;
   } else {
-    console.error('Token not found:', address);
-    return null;
+    throw new Error(`Token price not found in cache for address: ${address}`);
   }
 }
 
@@ -134,8 +136,7 @@ export async function fetchLPData(lpAddress: string) {
     const ids = await fetchTokenSymbols(lpAddress);
 
     if (!ids || !ids.data.pair) {
-      console.error('Invalid response from fetchTokenSymbols:', ids);
-      return null;
+      throw new Error(`LP data not found in cache for address: ${lpAddress}`);
     }
 
     const token0Address = ids.data.pair.token0.id
@@ -152,7 +153,7 @@ export async function fetchLPData(lpAddress: string) {
     }
 
     if (!token0Data || !token1Data) {
-      return null;
+      throw new Error(`Token data not found in cache for Token0 with address: ${token0Address} or Token1 with address: ${token1Address}`);
     }
 
     return [
@@ -169,7 +170,7 @@ export async function fetchLPData(lpAddress: string) {
     ];
   } catch (error) {
     console.error('Error in fetchLPData:', error);
-    return null;
+    throw error;
   }
 }
 

@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import {z} from "zod"
+import { z } from "zod"
 
 const mongooseTokenSchema = new mongoose.Schema({
-    symbol:{
+    symbol: {
         type: String,
         required: true
     },
@@ -15,19 +15,19 @@ const mongooseTokenSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    price:{
+    price: {
         type: Number,
         required: true
     },
-    tvlUSD:{
+    tvlUSD: {
         type: Number,
         required: true
     },
-    volumeUSD:{
+    volumeUSD: {
         type: Number,
         required: true
     },
-    
+
 })
 
 
@@ -35,11 +35,18 @@ const mongooseTokenSchema = new mongoose.Schema({
 const tokenSchema = z.object({
     symbol: z.string(),
     name: z.string(),
-    decimals: z.string(),
+    decimals: z.union([z.number(), z.string()]),
     price: z.number(),
-    volumeUSD: z.number(),
-    tvlUSD: z.number(),
+    volumeUSD: z.union([z.number(), z.string()]),
+    tvlUSD: z.union([z.number(), z.string()]),
     address: z.string(),
+}).transform((data) => {
+    return {
+        ...data,
+        volumeUSD: Number(data.volumeUSD),
+        tvlUSD: Number(data.tvlUSD),
+        decimals: Number(data.decimals),
+    }
 });
 
 

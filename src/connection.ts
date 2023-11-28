@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
+import { config } from './config';
 
 let conn: Promise<typeof mongoose> | null = null;
 
-const uri = process.env.MONGODB_URI || "";
 
 export const connect = async () => {
     if (conn == null) {
-        conn = mongoose.connect(uri, {
+        conn = mongoose.connect(config.mongoDbUri, {
             serverSelectionTimeoutMS: 5000
         }).then(() => mongoose);
 

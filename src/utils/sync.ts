@@ -4,23 +4,20 @@ import fetchAndValidate from "../validations/fetchAndValidate"
 import { poolModel } from "../schemas/poolSchema"
 import { addPoolToDB, updatePoolInDB } from "./utils"
 import { delay } from "./utils"
+import { connect } from "../connection"
+import { config } from "../config"
 
 export const syncData = async (): Promise<boolean> => {
   //get data from endpoints; look for new pools and update existing pools, delete old ones if necessary.
-
+  await connect()
   try {
-    const mirrorUrl = process.env.MIRROR_ENDPOINT;
-    const nitroUrl = process.env.NITRO_ENDPOINT;
 
-    if (!mirrorUrl || !nitroUrl) {
-      throw new Error('One or more required endpoints are undefined.');
-    }
 
 
     const currentPools = await poolModel.find({})
 
-    const mirrorData = await fetchAndValidate(mirrorUrl, mirrorSchema)
-    const nitroData = await fetchAndValidate(nitroUrl, nitroSchema)
+    const mirrorData = await fetchAndValidate(config.mirrorEndpoint, mirrorSchema)
+    const nitroData = await fetchAndValidate(config.nitroEndpoint, nitroSchema)
 
     //filter out pools with no tvl, no emission rate, or not a farm
     const pools = Object.values(mirrorData.data.nftPools).filter(pool => pool.tvlUSD > 0 && pool.isFarm && Number(pool.poolEmissionRate) > 0);
