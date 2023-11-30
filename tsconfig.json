@@ -1,18 +1,19 @@
 {
-    "compilerOptions": {
-      "target": "ES6", // Specify your target ECMAScript version
-      "module": "CommonJS", // Specify the module system used by Node.js
-      "rootDir": "./src", // Source directory for your TypeScript files
-      "strict": true, // Enable strict type checking
-      "esModuleInterop": true, // Enable compatibility with ES modules
-      "skipLibCheck": true, // Skip type checking of declaration files
-      "forceConsistentCasingInFileNames": true, // Enforce consistent file naming
-      "moduleResolution": "node", // Use Node.js module resolution strategy
-      "resolveJsonModule": true, // Enable importing JSON files
-      "declaration": true, // Generate declaration files (optional)
-      "sourceMap": true // Generate source maps for debugging (optional)
-    },
-    "include": ["src/**/*.ts"], // Specify the files to include in compilation
-    "exclude": ["node_modules", "dist"] // Specify files/folders to exclude from compilation
-  }
-  
+  "compilerOptions": {
+    "target": "ES6", // Specify your target ECMAScript version
+    "module": "CommonJS", // Specify the module system used by Node.js
+    "rootDir": "./src", // Source directory for your TypeScript files
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true, // Enable compatibility with ES modules
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "forceConsistentCasingInFileNames": true, // Enforce consistent file naming
+    "moduleResolution": "node", // Use Node.js module resolution strategy
+    "resolveJsonModule": true, // Enable importing JSON files
+    "declaration": true, // Generate declaration files (optional)
+    "sourceMap": true, // Generate source maps for debugging (optional)
+    "strictNullChecks": true,
+    "noImplicitAny": true
+  },
+  "include": ["src/**/*.ts"], // Specify the files to include in compilation
+  "exclude": ["node_modules", "dist"] // Specify files/folders to exclude from compilation
+}

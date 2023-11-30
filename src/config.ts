@@ -15,4 +15,5 @@ export const config = {
     tokensDataEndpoint: getEnvVar('TOKENS_DATA_ENDPOINT'),
     tokensPriceEndpoint: getEnvVar('TOKENS_PRICE_ENDPOINT'),
     graphqlTokenEndpoint: getEnvVar('GRAPHQL_TOKEN_ENDPOINT'),
+    rpcEndpoint: getEnvVar('RPC_ENDPOINT'),
 };

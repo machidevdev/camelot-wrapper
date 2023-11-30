@@ -2,37 +2,34 @@ import { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { connect } from './connection';
 import { poolModel } from "./schemas/poolSchema";
 import { syncData } from './utils/sync';
+import { responseBuilder } from './utils/response';
 
 
 
 
-export const pools = async (): Promise<unknown> => {
+export const pools = async (): Promise<APIGatewayProxyResult> => {
   const { connection } = await connect();
-  console.log(connection.readyState)
-
-
 
   if (connection.readyState === 1) {
-    const pools = await poolModel.find({});
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*", // Adjust this to allow specific origins
-        "Access-Control-Allow-Credentials": true,
-        // Add other CORS headers as needed
-      },
-      body: JSON.stringify({
-        message: pools
-      })
+    try {
+      const pools = await poolModel.find({})
+      return responseBuilder({
+        statusCode: 200,
+        data: pools,
+      });
     }
-  } else {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: "Connection failed"
-      })
+    catch (error) {
+      return responseBuilder({
+        statusCode: 500,
+        data: JSON.stringify({ error }),
+      });
     }
+
   }
+  return responseBuilder({
+    statusCode: 500,
+    data: JSON.stringify({ error: 'Internal Server Error' }),
+  });
 }
 
 
@@ -40,39 +37,31 @@ export const getPoolByAddress = async (event: APIGatewayEvent): Promise<APIGatew
   try {
     const { connection } = await connect();
     if (connection.readyState === 1) {
-      console.log("Connection successful")
       // Ensure pathParameters is not null
       const pathParameters = event.pathParameters || {};
 
       // Extract the address from the pathParameters
       const { address } = pathParameters;
-      console.log("address: ", address)
 
       const poolByAddress = await poolModel.findOne({ address: address })
-      console.log("poolByAddress: ", poolByAddress)
 
       // You can now use the 'address' variable in your code
 
-      return {
+      return responseBuilder({
         statusCode: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*", // Adjust this to allow specific origins
-          "Access-Control-Allow-Credentials": true,
-          // Add other CORS headers as needed
-        },
-        body: JSON.stringify({ poolByAddress }),
-      };
+        data: poolByAddress,
+      })
     } else {
-      return {
+      return responseBuilder({
         statusCode: 500,
-        body: JSON.stringify({ error: 'Internal Server Error: connection failed ' }),
-      };
+        data: JSON.stringify({ error: 'Internal Server Error' }),
+      })
     }
   } catch (error) {
-    return {
+    return responseBuilder({
       statusCode: 500,
-      body: JSON.stringify({ error: 'Internal Server Error: ' + error }),
-    };
+      data: JSON.stringify({ error }),
+    })
   }
 };
 
@@ -91,20 +80,15 @@ export const search = async (event: APIGatewayEvent): Promise<APIGatewayProxyRes
     const searchQuery = requestBody.search;
     const filteredPools = await poolModel.find({ name: { $regex: searchQuery, $options: 'i' } });
 
-    return {
+    return responseBuilder({
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*", // Adjust this to allow specific origins
-        "Access-Control-Allow-Credentials": true,
-        // Add other CORS headers as needed
-      },
-      body: JSON.stringify({ filteredPools }),
-    };
+      data: filteredPools,
+    })
   } catch (error) {
-    return {
+    return responseBuilder({
       statusCode: 500,
-      body: JSON.stringify({ message: 'Internal Server Error' }),
-    };
+      data: JSON.stringify({ error }),
+    })
   }
 };
 
@@ -115,12 +99,9 @@ export const search = async (event: APIGatewayEvent): Promise<APIGatewayProxyRes
 
 
 //this one has to be called every 5 minutes or so from cloudwatch
-export const sync = async (): Promise<APIGatewayProxyResult> => {
+export const sync = async (): Promise<void> => {
   await syncData();
-  return {
-    statusCode: 200,
-    body: JSON.stringify("updated"),
-  };
+  console.log("Sync completed");
 }
 
 

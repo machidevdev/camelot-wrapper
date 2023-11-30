@@ -45,6 +45,6 @@ const nitroSchema = z.object({
 
 type nitroPoolType = z.infer<typeof nitroPoolSchema>
 
-type nitroType = z.infer<typeof nitroSchema>
+type nitroResponseType = z.infer<typeof nitroSchema>
 
-export {nitroPoolSchema, nitroPoolsSchema, nitroSchema, nitroType, nitroPoolType }
+export {nitroPoolSchema, nitroPoolsSchema, nitroSchema, nitroResponseType, nitroPoolType }

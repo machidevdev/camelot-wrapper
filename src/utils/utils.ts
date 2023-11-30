@@ -83,7 +83,6 @@ export async function updateTokenDataCache() {
 }
 
 
-
 export async function updatePriceCache() {
   const now = Date.now();
   const viemClient = getViemClient()
@@ -98,7 +97,6 @@ export async function updatePriceCache() {
     abi: holyEthOracle.abi,
     functionName: "getSpot",
   });
-  console.log("holyEthPrice: ", holyEthPrice)
   tokenPriceCache.timestamp = now;
   const filtered = Object.values(tokenList.data.tokens).filter((token) => {
     return token.price != 0 && token.tvlUSD != 0 && token.volumeUSD != 0

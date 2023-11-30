@@ -34,6 +34,7 @@ const mirrorSchema = z.object({
 });
 
 type mirrorPoolType = z.infer<typeof mirrorPoolSchema>
+type mirrorResponseType = z.infer<typeof mirrorSchema>
 
 
-export { mirrorPoolSchema, mirrorPoolsSchema, dataSchema, mirrorSchema, mirrorPoolType  }
+export { mirrorPoolSchema, mirrorPoolsSchema, dataSchema, mirrorSchema, mirrorPoolType, mirrorResponseType }
