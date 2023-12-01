@@ -3,7 +3,7 @@ import { connect } from './connection';
 import { poolModel } from "./schemas/poolSchema";
 import { syncData } from './utils/sync';
 import { responseBuilder } from './utils/response';
-
+import { isAddress } from 'viem'
 
 
 
@@ -43,14 +43,19 @@ export const getPoolByAddress = async (event: APIGatewayEvent): Promise<APIGatew
       // Extract the address from the pathParameters
       const { address } = pathParameters;
 
-      const poolByAddress = await poolModel.findOne({ address: address })
-
-      // You can now use the 'address' variable in your code
-
-      return responseBuilder({
-        statusCode: 200,
-        data: poolByAddress,
+      if (isAddress(address!) === false) return responseBuilder({
+        statusCode: 400,
+        data: JSON.stringify({ error: 'Invalid address' }),
       })
+      else {
+        const poolByAddress = await poolModel.findOne({ address: address })
+        return responseBuilder({
+          statusCode: 200,
+          data: poolByAddress,
+        })
+      }
+
+
     } else {
       return responseBuilder({
         statusCode: 500,

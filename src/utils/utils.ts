@@ -24,7 +24,11 @@ export const tokenDataCache = {
   data: new Map<string, tokenDataType>(),
 }
 
-
+/**
+ * Fetches token pair information by its address.
+ * @param {string} address - The address of the token pair.
+ * @returns {string} The GraphQL query for the token pair.
+ */
 function getTokenPairByAddress(address: string) {
   return `query TokenQuery{
     pair(id: "${address}") {
@@ -39,8 +43,13 @@ function getTokenPairByAddress(address: string) {
   }`;
 }
 
-//get token symbols from lp address
-//not using fetchAndValidate because it's a kind of custom query, checking only after the fact if the response is valid
+
+/**
+ * Fetches token symbols from a liquidity pool (LP) address.
+ * @param {string} address - The LP address.
+ * @returns {Promise<lpResponseType>} An object containing the token symbols of the LP.
+ * @throws {Error} Throws an error if the fetch operation fails.
+ */
 export async function fetchTokenSymbols(address: string): Promise<lpResponseType> {
   try {
     const response = await fetch(config.graphqlTokenEndpoint, {
@@ -65,7 +74,10 @@ export async function fetchTokenSymbols(address: string): Promise<lpResponseType
   }
 }
 
-
+/**
+ * Updates the token data cache if it's outdated.
+ * @returns {Promise<tokenDataType>} The updated token data cache.
+ */
 export async function updateTokenDataCache() {
   const now = Date.now();
 
@@ -83,6 +95,10 @@ export async function updateTokenDataCache() {
 }
 
 
+/**
+ * Updates the price cache if it's outdated.
+ * @returns {Promise<Map<string, number>>} The updated price cache.
+ */
 export async function updatePriceCache() {
   const now = Date.now();
   const viemClient = getViemClient()
@@ -111,8 +127,13 @@ export async function updatePriceCache() {
 
 
 
-// Function to find a token by its address
-async function fetchTokenPrice(address: string): Promise<number | null> {
+/**
+ * Fetches the price of a token by its address.
+ * @param {string} address - The address of the token.
+ * @returns {Promise<number | null>} The price of the token or null if not found.
+ * @throws {Error} Throws an error if the token price is not found in the cache.
+ */
+async function fetchTokenPrice(address: string): Promise<number> {
   await updatePriceCache(); // Ensure the cache is up-to-date before searching
   const tokenData = tokenPriceCache.data.get(address.toLowerCase());
   if (tokenData) {
@@ -122,12 +143,29 @@ async function fetchTokenPrice(address: string): Promise<number | null> {
   }
 }
 
+/**
+ * Fetches token data by its address.
+ * @param {string} address - The address of the token.
+ * @returns {Promise<tokenDataType | undefined>} The data of the token.
+ */
 async function fetchTokenData(address: string) {
   await updateTokenDataCache();
   const tokenData = tokenDataCache.data.get(address.toLowerCase());
-  return tokenData;
+  if (!tokenData) {
+    throw new Error(`Token data not found in cache for address: ${address}`);
+  } else {
+    return tokenData;
+
+  }
 }
 
+
+/**
+ * Fetches data for a liquidity pool (LP) by its address.
+ * @param {string} lpAddress - The address of the LP.
+ * @returns {Promise<Token[]>} An array of tokens involved in the LP.
+ * @throws {Error} Throws an error if the LP data is not found.
+ */
 export async function fetchLPData(lpAddress: string) {
   try {
     await updateTokenDataCache();
@@ -175,8 +213,13 @@ export async function fetchLPData(lpAddress: string) {
 
 
 
-
-export async function fetchNitroTokenData(nitro: nitroPoolType):Promise<Token[]> {
+/**
+ * Fetches data for tokens involved in a Nitro pool.
+ * @param {nitroPoolType} nitro - The Nitro pool object.
+ * @returns {Promise<Token[]>} An array of tokens involved in the Nitro pool.
+ * @throws {Error} Throws an error if token data is not found.
+ */
+export async function fetchNitroTokenData(nitro: nitroPoolType): Promise<Token[]> {
   const token1Data = await fetchTokenData(nitro.rewardsToken1);
   if (nitro.rewardsToken2 != "0x00") {
     const token2Data = await fetchTokenData(nitro.rewardsToken2);
@@ -199,7 +242,7 @@ export async function fetchNitroTokenData(nitro: nitroPoolType):Promise<Token[]>
   //token1 always exists, while token2 is not always present
   if (!token1Data) {
     throw new Error(`Token data not found in cache for Token0 with address: ${nitro.rewardsToken1}`);
-    
+
   }
   else {
     return [
@@ -214,7 +257,11 @@ export async function fetchNitroTokenData(nitro: nitroPoolType):Promise<Token[]>
 }
 
 
-
+/**
+ * Adds a new pool to the database.
+ * @param {mirrorPoolType} pool - The pool object to add to the database.
+ * @returns {Promise<void>}
+ */
 export async function addPoolToDB(pool: mirrorPoolType) {
   //check if pool has nitro first of all. if it does, calculate min-max base apr and nitro aprs. if not, only base apr
   //also get all token symbols needed for pool
@@ -228,7 +275,7 @@ export async function addPoolToDB(pool: mirrorPoolType) {
 
   }
   const p = new poolModel({
-    name: lpData ? lpData[0].symbol + "-" + lpData[1].symbol : "Unknown",
+    name:  lpData[0].symbol + "-" + lpData[1].symbol,
     address: pool.address,
     isNitro: pool.nitro ? true : false,
     depositToken: pool.depositToken,
@@ -246,7 +293,11 @@ export async function addPoolToDB(pool: mirrorPoolType) {
 }
 
 
-
+/**
+ * Updates an existing pool in the database.
+ * @param {mirrorPoolType} pool - The pool object to update in the database.
+ * @returns {Promise<void>}
+ */
 export async function updatePoolInDB(pool: mirrorPoolType) {
   //update aprs and tvl
   const { baseAPR, maxAPR } = await calculateAPR(pool);
@@ -254,9 +305,14 @@ export async function updatePoolInDB(pool: mirrorPoolType) {
     const nitroAPR = await calculateNitroApr(pool.nitro);
     await poolModel.updateOne({ address: pool.address }, { minAPR: baseAPR, maxAPR: maxAPR, nitroAPR: nitroAPR })
   }
+  
 }
 
-// A helper function to delay the execution
+/**
+ * A helper function to delay the execution for a given number of milliseconds.
+ * @param {number} ms - The number of milliseconds to delay.
+ * @returns {Promise<void>}
+ */
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
