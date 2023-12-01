@@ -36,6 +36,8 @@ functions:
 
   sync:
     handler: src/handler.sync
+    events:
+      - schedule: rate(5 minutes)
     timeout: 500 # in seconds
 
 plugins:

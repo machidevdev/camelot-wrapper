@@ -16,4 +16,5 @@ export const config = {
     tokensPriceEndpoint: getEnvVar('TOKENS_PRICE_ENDPOINT'),
     graphqlTokenEndpoint: getEnvVar('GRAPHQL_TOKEN_ENDPOINT'),
     rpcEndpoint: getEnvVar('RPC_ENDPOINT'),
+    discordHook: getEnvVar("DISCORD_WEBHOOK")
 };

@@ -4,6 +4,7 @@ import { poolModel } from "./schemas/poolSchema";
 import { syncData } from './utils/sync';
 import { responseBuilder } from './utils/response';
 import { isAddress } from 'viem'
+import { sendMessage } from './utils/discord';
 
 
 
@@ -105,8 +106,16 @@ export const search = async (event: APIGatewayEvent): Promise<APIGatewayProxyRes
 
 //this one has to be called every 5 minutes or so from cloudwatch
 export const sync = async (): Promise<void> => {
-  await syncData();
-  console.log("Sync completed");
+  try {
+    await syncData();
+   sendMessage("Server", "sync", "Processing completed successfully.");
+
+  }
+  catch (error) { 
+    console.error(error);
+    sendMessage("Server", "sync", "Processing error:" + error);
+
+  }
 }
 
 
