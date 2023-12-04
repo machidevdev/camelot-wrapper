@@ -276,7 +276,7 @@ export async function addPoolToDB(pool: mirrorPoolType) {
   }
   const p = new poolModel({
     name:  lpData[0].symbol + "-" + lpData[1].symbol,
-    address: pool.address,
+    address: pool.address.toLowerCase(),
     isNitro: pool.nitro ? true : false,
     depositToken: pool.depositToken,
     minAPR: baseAPR,
@@ -303,7 +303,7 @@ export async function updatePoolInDB(pool: mirrorPoolType) {
   const { baseAPR, maxAPR } = await calculateAPR(pool);
   if (pool.nitro) {
     const nitroAPR = await calculateNitroApr(pool.nitro);
-    await poolModel.updateOne({ address: pool.address }, { minAPR: baseAPR, maxAPR: maxAPR, nitroAPR: nitroAPR })
+    await poolModel.updateOne({ address: pool.address }, { minAPR: baseAPR, maxAPR: maxAPR, nitroAPR: nitroAPR, address: pool.address.toLowerCase() })
   }
   
 }

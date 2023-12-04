@@ -42,14 +42,15 @@ export const getPoolByAddress = async (event: APIGatewayEvent): Promise<APIGatew
       const pathParameters = event.pathParameters || {};
 
       // Extract the address from the pathParameters
-      const { address } = pathParameters;
+      const { poolAddress } = pathParameters;
 
-      if (isAddress(address!) === false) return responseBuilder({
+      if (isAddress(poolAddress!) === false) return responseBuilder({
         statusCode: 400,
         data: JSON.stringify({ error: 'Invalid address' }),
       })
       else {
-        const poolByAddress = await poolModel.findOne({ address: address })
+        const poolByAddress = await poolModel.findOne({'address': {'$regex': poolAddress,$options:'i'}})
+
         return responseBuilder({
           statusCode: 200,
           data: poolByAddress,

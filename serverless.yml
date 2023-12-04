@@ -21,7 +21,7 @@ functions:
     handler: src/handler.getPoolByAddress
     events:
       - http:
-          path: pools/{address}
+          path: pools/{poolAddress}
           method: GET
           cors: true
     timeout: 10 # in seconds
@@ -37,7 +37,7 @@ functions:
   sync:
     handler: src/handler.sync
     events:
-      - schedule: rate(5 minutes)
+      - schedule: rate(30 minutes)
     timeout: 500 # in seconds
 
 plugins:
