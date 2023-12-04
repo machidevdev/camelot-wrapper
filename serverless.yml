@@ -54,8 +54,6 @@ functions:
 plugins:
   - serverless-esbuild
   - serverless-offline
-  - serverless-dotenv-plugin
-
 custom:
   serverless-offline:
     httpPort: 4000
