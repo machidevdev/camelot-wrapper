@@ -1,11 +1,11 @@
-org: machidevdev
-app: backend-api
+app: backend-api-prod
 service: backend-api
 
 frameworkVersion: '3'
 provider:
   name: aws
   runtime: nodejs18.x
+  stage: prod
 
 functions:
   pools:
