@@ -1,0 +1,44 @@
+org: machidevdev
+app: backend-api
+service: backend-api
+
+frameworkVersion: '3'
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+functions:
+  pools:
+    handler: src/handler.pools
+    events:
+      - http:
+          path: pools
+          method: get
+          cors: true
+    timeout: 10 # in seconds
+
+  getAddress:
+    handler: src/handler.getPoolByAddress
+    events:
+      - http:
+          path: pools/{poolAddress}
+          method: GET
+          cors: true
+    timeout: 10 # in seconds
+
+  search:
+    handler: src/handler.search
+    events:
+      - http:
+          path: search
+          method: POST
+          cors: true
+
+  sync:
+    handler: src/handler.sync
+    events:
+      - schedule: rate(30 minutes)
+    timeout: 150 # in seconds
+
+plugins:
+  - serverless-esbuild

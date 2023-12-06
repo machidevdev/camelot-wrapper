@@ -5,10 +5,12 @@ import { syncData } from './utils/sync';
 import { responseBuilder } from './utils/response';
 import { isAddress } from 'viem'
 import { sendMessage } from './utils/discord';
+import "dotenv/config";
 
 
 
 export const pools = async (): Promise<APIGatewayProxyResult> => {
+
   const { connection } = await connect();
 
   if (connection.readyState === 1) {
@@ -49,7 +51,7 @@ export const getPoolByAddress = async (event: APIGatewayEvent): Promise<APIGatew
         data: JSON.stringify({ error: 'Invalid address' }),
       })
       else {
-        const poolByAddress = await poolModel.findOne({'address': {'$regex': poolAddress,$options:'i'}})
+        const poolByAddress = await poolModel.findOne({ 'address': { '$regex': poolAddress, $options: 'i' } })
 
         return responseBuilder({
           statusCode: 200,
@@ -109,10 +111,10 @@ export const search = async (event: APIGatewayEvent): Promise<APIGatewayProxyRes
 export const sync = async (): Promise<void> => {
   try {
     await syncData();
-   sendMessage("Server", "sync", "Processing completed successfully.");
+    sendMessage("Server", "sync", "Processing completed successfully.");
 
   }
-  catch (error) { 
+  catch (error) {
     console.error(error);
     sendMessage("Server", "sync", "Processing error:" + error);
 

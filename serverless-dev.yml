@@ -2,7 +2,6 @@ org: machidevdev
 app: backend-api
 service: backend-api
 frameworkVersion: '3'
-
 provider:
   name: aws
   runtime: nodejs18.x
@@ -43,6 +42,7 @@ functions:
 plugins:
   - serverless-esbuild
   - serverless-offline
+  - serverless-dotenv-plugin
 custom:
   serverless-offline:
     httpPort: 4000
