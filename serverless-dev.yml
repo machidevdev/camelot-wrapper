@@ -1,4 +1,3 @@
-org: machidevdev
 app: backend-api
 service: backend-api
 frameworkVersion: '3'
