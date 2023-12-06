@@ -2,7 +2,7 @@
   "name": "backend-api",
   "version": "0.0.1",
   "scripts": {
-    "dev": "serverless offline start --config serverless-dev.yml",
+    "dev": "serverless offline start --config serverless-local.yml",
     "deploy": "serverless deploy --stage prod --config serverless-prod.yml",
     "sync": "serverless invoke local --function sync serverless-dev.yml"
   },

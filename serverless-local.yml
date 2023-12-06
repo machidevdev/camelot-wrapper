@@ -5,15 +5,6 @@ provider:
   name: aws
   runtime: nodejs18.x
   stage: dev
-  environment:
-    MONGODB_URI: ${env:MONGODB_URI}
-    NITRO_ENDPOINT: ${env:NITRO_ENDPOINT}
-    MIRROR_ENDPOINT: ${env:MIRROR_ENDPOINT}
-    TOKENS_DATA_ENDPOINT: ${env:TOKENS_DATA_ENDPOINT}
-    TOKENS_PRICE_ENDPOINT: ${env:TOKENS_PRICE_ENDPOINT}
-    GRAPHQL_TOKEN_ENDPOINT: ${env:GRAPHQL_TOKEN_ENDPOINT}
-    RPC_ENDPOINT: ${env:RPC_ENDPOINT}
-    DISCORD_WEBHOOK: ${env:DISCORD_WEBHOOK}
 
 functions:
   pools:
@@ -51,6 +42,7 @@ functions:
 plugins:
   - serverless-esbuild
   - serverless-offline
+  - serverless-dotenv-plugin
 custom:
   serverless-offline:
     httpPort: 4000
