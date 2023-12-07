@@ -48,6 +48,14 @@ functions:
       - schedule: rate(30 minutes)
     timeout: 500 # in seconds
 
+  health:
+    handler: src/handler.health
+    events:
+      - http:
+          path: health
+          method: get
+          cors: true
+
 plugins:
   - serverless-esbuild
   - serverless-offline

@@ -33,6 +33,14 @@ functions:
           method: POST
           cors: true
 
+  health:
+    handler: src/handler.health
+    events:
+      - http:
+          path: health
+          method: get
+          cors: true
+
   sync:
     handler: src/handler.sync
     events:

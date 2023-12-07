@@ -122,6 +122,14 @@ export const sync = async (): Promise<void> => {
 }
 
 
+export const health = async (): Promise<APIGatewayProxyResult> => {
+  return responseBuilder({
+    statusCode: 200,
+    data: "OK",
+  })
+}
+
+
 
 
 
