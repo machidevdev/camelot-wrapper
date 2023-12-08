@@ -31,12 +31,12 @@ jobs:
       - name: Serverless Deploy
         run: npx serverless deploy --stage dev --verbose --config serverless-dev.yml
         env:
-          MONGODB_URI: ${secrets.MONGODB_URI}
-          NITRO_ENDPOINT: ${secrets.NITRO_ENDPOINT}
-          MIRROR_ENDPOINT: ${secrets.MIRROR_ENDPOINT}
-          TOKENS_DATA_ENDPOINT: ${secrets.TOKENS_DATA_ENDPOINT}
-          TOKENS_PRICE_ENDPOINT: ${secrets.TOKENS_PRICE_ENDPOINT}
-          GRAPHQL_TOKEN_ENDPOINT: ${secrets.GRAPHQL_TOKEN_ENDPOINT}
-          RPC_ENDPOINT: ${secrets.RPC_ENDPOINT}
-          DISCORD_WEBHOOK: ${secrets.DISCORD_WEBHOOK}
-          SERVERLESS_ACCESS_KEY: ${secrets.SERVERLESS_ACCESS_KEY}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          NITRO_ENDPOINT: ${{ secrets.NITRO_ENDPOINT }}
+          MIRROR_ENDPOINT: ${{ secrets.MIRROR_ENDPOINT }}
+          TOKENS_DATA_ENDPOINT: ${{ secrets.TOKENS_DATA_ENDPOINT }}
+          TOKENS_PRICE_ENDPOINT: ${{ secrets.TOKENS_PRICE_ENDPOINT }}
+          GRAPHQL_TOKEN_ENDPOINT: ${{ secrets.GRAPHQL_TOKEN_ENDPOINT }}
+          RPC_ENDPOINT: ${{ secrets.RPC_ENDPOINT }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
