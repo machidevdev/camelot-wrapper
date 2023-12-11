@@ -1,5 +1,5 @@
 import holy from "../contracts/holy"
-import holyEthOracle from "../contracts/holyEth"
+import holyEthOracle from "../contracts/V2IsekaiHolyEthTwapOracle"
 import { getViemClient } from "../viemClient"
 import { Token, poolModel } from "../schemas/poolSchema"
 import { calculateAPR, calculateNitroApr } from "./apr"

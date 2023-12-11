@@ -9,12 +9,13 @@ function getEnvVar(name: string): string {
 
 
 export const config = {
-    mongoDbUri: getEnvVar('MONGODB_URI'),
-    nitroEndpoint: getEnvVar('NITRO_ENDPOINT'),
-    mirrorEndpoint: getEnvVar('MIRROR_ENDPOINT'),
-    tokensDataEndpoint: getEnvVar('TOKENS_DATA_ENDPOINT'),
-    tokensPriceEndpoint: getEnvVar('TOKENS_PRICE_ENDPOINT'),
-    graphqlTokenEndpoint: getEnvVar('GRAPHQL_TOKEN_ENDPOINT'),
-    rpcEndpoint: getEnvVar('RPC_ENDPOINT'),
-    discordHook: getEnvVar("DISCORD_WEBHOOK")
+  mongoDbUri: getEnvVar('MONGODB_URI'),
+  nitroEndpoint: getEnvVar('NITRO_ENDPOINT'),
+  mirrorEndpoint: getEnvVar('MIRROR_ENDPOINT'),
+  tokensDataEndpoint: getEnvVar('TOKENS_DATA_ENDPOINT'),
+  tokensPriceEndpoint: getEnvVar('TOKENS_PRICE_ENDPOINT'),
+  graphqlTokenEndpoint: getEnvVar('GRAPHQL_TOKEN_ENDPOINT'),
+  rpcEndpoint: getEnvVar('RPC_ENDPOINT'),
+  discordHook: getEnvVar("DISCORD_WEBHOOK"),
+  environment: getEnvVar("ENVIRONMENT")
 };

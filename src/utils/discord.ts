@@ -7,24 +7,28 @@ import { config } from "../config";
  * @param status - The status message to send.
  */
 const sendMessage = async (projectName: string, functionName: string, status: string) => {
-    const formattedMessage = `[${projectName}:${functionName}]\n\n${status}`;
+    if (config.environment != "local") {
 
-    try {
-        const response = await fetch(config.discordHook, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ content: formattedMessage })
-        });
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
+        const formattedMessage = `[${projectName}:${functionName}]\n\n${status}`;
+
+        try {
+            const response = await fetch(config.discordHook, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: formattedMessage })
+            });
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} ${response.statusText}`);
+            }
+            console.log('Message sent successfully');
         }
-        console.log('Message sent successfully');
+        catch (error) {
+            console.error('Error sending message:', error);
+        }
     }
-    catch (error) {
-        console.error('Error sending message:', error);
-    }
+
 };
 
 export { sendMessage };
