@@ -40,3 +40,4 @@ jobs:
           RPC_ENDPOINT: ${{ secrets.RPC_ENDPOINT }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+          ENVIRONMENT: ${{ secrets.ENVIRONMENT }}
