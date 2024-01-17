@@ -31,7 +31,7 @@ export const tokenDataCache = {
  */
 function getTokenPairByAddress(address: string) {
   return `query TokenQuery{
-    pair(id: "${address}") {
+    pair(where: {id: "${address.toLowerCase()}"}) {
       id
       token0 {
         id
@@ -70,7 +70,7 @@ export async function fetchTokenSymbols(address: string): Promise<lpResponseType
     return lpResponseSchema.parse(symbols)
 
   } catch (error) {
-    throw new Error(`Error fetching token symbols for address ${address}: ${error}`);
+    throw new Error(`Error fetching token symbols for address ${address.toLowerCase()}: ${error}`);
   }
 }
 

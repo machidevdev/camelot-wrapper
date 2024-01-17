@@ -4,11 +4,12 @@
   "scripts": {
     "dev": "serverless offline start --config serverless-local.yml",
     "deploy": "serverless deploy --stage prod --config serverless-prod.yml",
-    "sync": "serverless invoke local --function sync serverless-dev.yml"
+    "sync": "serverless invoke local --function sync --config serverless-local.yml"
   },
   "dependencies": {
     "aws-lambda": "^1.0.7",
     "dotenv": "^16.3.1",
+    "graphql-client": "^2.0.1",
     "mongoose": "^8.0.1",
     "viem": "1.10",
     "zod": "^3.22.4"

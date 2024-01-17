@@ -18,18 +18,36 @@ export const syncData = async (): Promise<boolean> => {
   await connect();
   try {
     const currentPools = await poolModel.find({});
-
-
     const [mirrorData, nitroData] = await Promise.all([
       fetchAndValidate(config.mirrorEndpoint, mirrorSchema),
       fetchAndValidate(config.nitroEndpoint, nitroSchema)
     ]);
 
-    const pools = filterPools(mirrorData);
+    //TODO: REWRITE THIS IN A BETTER WAY
+    const supportedLps = await fetch("http://108.61.189.22:8000/subgraphs/name/isekia/all",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `
+          query Lps{
+            supportedLps {
+              id
+            }
+          }
+          `
+        })
+      }
+    )
+    const {data} = await supportedLps.json();
+    console.log(data.supportedLps);
+
+    const pools = filterPools(mirrorData, data.supportedLps);
     const nitros = filterNitros(nitroData);
 
-
+    
     mergePoolsAndNitros(pools, nitros);
+    console.log(pools)
 
     await processPools(pools, currentPools);
     await deleteInactivePools(pools, currentPools);
@@ -41,9 +59,13 @@ export const syncData = async (): Promise<boolean> => {
   }
 };
 
-function filterPools(mirrorData: mirrorResponseType): mirrorPoolType[] {
+
+//We're also filtering pools not in the supportedLps list
+function filterPools(mirrorData: mirrorResponseType, supportedLps: string[]): mirrorPoolType[] {
+
+
   return Object.values(mirrorData.data.nftPools).filter(pool =>
-    pool.tvlUSD > 0 && pool.isFarm && Number(pool.poolEmissionRate) > 0);
+    pool.tvlUSD > 0 && pool.isFarm && Number(pool.poolEmissionRate) > 0 && supportedLps.includes(pool.depositToken));
 }
 
 function filterNitros(nitroData: nitroResponseType): nitroPoolType[] {
