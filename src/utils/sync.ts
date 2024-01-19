@@ -6,8 +6,9 @@ import { addPoolToDB, updatePoolInDB } from "./utils";
 import { delay } from "./utils";
 import { connect } from "../connection";
 import { config } from "../config";
+import { supportedLpResponseSchema, supportedLpResponseType, supportedLpType } from "../schemas/supportedLpResponseSchema";
 
-
+const dead = "0x0000000000000000000000000000000000000000";
 
 /**
  * Synchronizes data by fetching and processing pools and nitros.
@@ -24,7 +25,7 @@ export const syncData = async (): Promise<boolean> => {
     ]);
 
     //TODO: REWRITE THIS IN A BETTER WAY
-    const supportedLps = await fetch("http://108.61.189.22:8000/subgraphs/name/isekia/all",
+    const supportedLpsRequest = await fetch("http://108.61.189.22:8000/subgraphs/name/isekia/all",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,18 +33,23 @@ export const syncData = async (): Promise<boolean> => {
           query: `
           query Lps{
             supportedLps {
-              id
+              lp
+              nitroPool
+              spNft
             }
           }
           `
         })
       }
     )
-    const {data} = await supportedLps.json();
-    console.log(data.supportedLps);
+    
+    const supportedLpResponse = supportedLpResponseSchema.parse(await supportedLpsRequest.json());
 
-    const pools = filterPools(mirrorData, data.supportedLps);
-    const nitros = filterNitros(nitroData);
+    const supportedLps = supportedLpResponse.data.supportedLps;
+    
+    const pools = filterPools(mirrorData, supportedLps);
+    console.log(pools)
+    const nitros = filterNitros(nitroData,supportedLps);
 
     
     mergePoolsAndNitros(pools, nitros);
@@ -61,16 +67,21 @@ export const syncData = async (): Promise<boolean> => {
 
 
 //We're also filtering pools not in the supportedLps list
-function filterPools(mirrorData: mirrorResponseType, supportedLps: string[]): mirrorPoolType[] {
+function filterPools(mirrorData: mirrorResponseType, supportedLps: supportedLpType[]): mirrorPoolType[] {
 
+  const supported: mirrorPoolType[] = []
+  
 
-  return Object.values(mirrorData.data.nftPools).filter(pool =>
-    pool.tvlUSD > 0 && pool.isFarm && Number(pool.poolEmissionRate) > 0 && supportedLps.includes(pool.depositToken));
+  Object.keys(mirrorData.data.nftPools).forEach(key => {
+    if(supportedLps.find(lp => lp.spNft.toLowerCase() === key.toLowerCase())){
+      supported.push(mirrorData.data.nftPools[key])
+    }
+  })
+  return supported  
 }
 
-function filterNitros(nitroData: nitroResponseType): nitroPoolType[] {
-  return Object.values(nitroData.data.nitros).filter(nitro =>
-    nitro.whitelistLength == 0 && Number(nitro.rewardsToken1PerSecond) > 0 && nitro.endTime * 1000 > Date.now());
+function filterNitros(nitroData: nitroResponseType, supportedNitro: supportedLpType[]): nitroPoolType[] {
+  return []
 }
 
 function mergePoolsAndNitros(pools: mirrorPoolType[], nitros: nitroPoolType[]): void {
@@ -88,14 +99,15 @@ async function processPools(pools: mirrorPoolType[], currentPools: Pool[]): Prom
       console.log(`Processing pool ${i + 1}/${pools.length}`);
       const existingPool = currentPools.find(pool => pool.address === pools[i].address);
       if (existingPool) {
+        console.log(`Updating pool ${pools[i].depositToken}`);
         await updatePoolInDB(pools[i]);
       } else {
+        console.log(`Adding pool ${pools[i].depositToken}`);
         await addPoolToDB(pools[i]);
       }
     } catch (error) {
       console.error(`Error processing pool ${pools[i].depositToken}: ${error}`);
     }
-    await delay(1000);
   }
 }
 

@@ -112,12 +112,13 @@ export const sync = async (): Promise<void> => {
   try {
     await syncData();
     sendMessage("Server", "sync", "Processing completed successfully.");
+    return;
 
   }
   catch (error) {
     console.error(error);
     sendMessage("Server", "sync", "Processing error:" + error);
-
+    return;
   }
 }
 

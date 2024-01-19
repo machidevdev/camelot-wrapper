@@ -31,7 +31,7 @@ export const tokenDataCache = {
  */
 function getTokenPairByAddress(address: string) {
   return `query TokenQuery{
-    pair(where: {id: "${address.toLowerCase()}"}) {
+    pair(id: "${address}") {
       id
       token0 {
         id
@@ -57,7 +57,7 @@ export async function fetchTokenSymbols(address: string): Promise<lpResponseType
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query: getTokenPairByAddress(address.toLowerCase()) }),
+      body: JSON.stringify({ query: getTokenPairByAddress(address) }),
     });
 
     if (response.status === 429) {
@@ -65,12 +65,11 @@ export async function fetchTokenSymbols(address: string): Promise<lpResponseType
     } else if (response.status !== 200) {
       throw new Error(`HTTP error ${response.status}`);
     }
-
     const symbols = await response.json();
     return lpResponseSchema.parse(symbols)
 
   } catch (error) {
-    throw new Error(`Error fetching token symbols for address ${address.toLowerCase()}: ${error}`);
+    throw new Error(`Error fetching token symbols for address ${address}: ${error}`);
   }
 }
 
@@ -169,7 +168,7 @@ async function fetchTokenData(address: string) {
 export async function fetchLPData(lpAddress: string) {
   try {
     await updateTokenDataCache();
-    const ids = await fetchTokenSymbols(lpAddress);
+    const ids = await fetchTokenSymbols(lpAddress.toLowerCase());
 
     if (!ids || !ids.data.pair) {
       throw new Error(`LP data not found in cache for address: ${lpAddress}`);

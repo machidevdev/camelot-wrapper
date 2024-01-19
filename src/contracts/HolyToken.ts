@@ -1,5 +1,5 @@
 const HolyToken = {
-  address: '0xe14A9E24120Be90952E0Cfa000A822BD48505c19' as `0x${string}`,
+  address: "0xe14A9E24120Be90952E0Cfa000A822BD48505c19"  as `0x${string}`,
   abi: [
   {
     "inputs": [],
@@ -882,4 +882,4 @@ const HolyToken = {
   }
 ] as const
 };
-export default HolyToken;
+ export default HolyToken;

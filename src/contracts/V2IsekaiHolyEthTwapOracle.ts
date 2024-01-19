@@ -1,5 +1,5 @@
 const V2IsekaiHolyEthTwapOracle = {
-  address: '0x4f07450Ef721147D38f29739eEe8079bC147f1f6' as `0x${string}`,
+  address: "0x3350b7326cAAD3feF234d3db86E41aF40dC489d0"  as `0x${string}`,
   abi: [
   {
     "inputs": [],
@@ -598,4 +598,4 @@ const V2IsekaiHolyEthTwapOracle = {
   }
 ] as const
 };
-export default V2IsekaiHolyEthTwapOracle;
+ export default V2IsekaiHolyEthTwapOracle;
