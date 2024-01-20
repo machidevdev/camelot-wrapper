@@ -29,7 +29,7 @@ jobs:
         run: npm install
 
       - name: Serverless Deploy
-        run: npx serverless deploy --stage dev --verbose --config serverless-dev.yml
+        run: npx serverless deploy --force --stage dev --verbose --config serverless-dev.yml
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           NITRO_ENDPOINT: ${{ secrets.NITRO_ENDPOINT }}
