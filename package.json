@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "serverless offline start --config serverless-local.yml",
     "deploy": "serverless deploy --stage prod --config serverless-prod.yml",
-    "sync-local": "serverless invoke local --function sync --config serverless-local.yml",
+    "sync": "serverless invoke local --function sync --config serverless-local.yml",
     "sync-dev": "serverless invoke --function sync --config serverless-dev.yml"
   },
   "dependencies": {
