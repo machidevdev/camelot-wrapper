@@ -111,7 +111,7 @@ export const search = async (event: APIGatewayEvent): Promise<APIGatewayProxyRes
 export const sync = async (): Promise<void> => {
   try {
     await syncData();
-    sendMessage("Server", "sync", "Processing completed successfully.");
+    await sendMessage("Server", "sync", "Processing completed successfully.");
     return;
 
   }

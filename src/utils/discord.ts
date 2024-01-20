@@ -8,7 +8,6 @@ import { config } from "../config";
  */
 const sendMessage = async (projectName: string, functionName: string, status: string) => {
     if (config.environment != "local") {
-
         const formattedMessage = `[${projectName}:${functionName}]\n\n${status}`;
 
         try {

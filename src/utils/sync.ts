@@ -4,10 +4,9 @@ import fetchAndValidate from "../validations/fetchAndValidate";
 import { Pool, poolModel } from "../schemas/poolSchema";
 import { addPoolToDB, updatePoolInDB } from "./utils";
 import { delay } from "./utils";
-import { connect } from "../connection";
+import { connect, disconnect } from "../connection";
 import { config } from "../config";
 import { supportedLpResponseSchema, supportedLpResponseType, supportedLpType } from "../schemas/supportedLpResponseSchema";
-import { disconnect } from "mongoose";
 
 
 /**
