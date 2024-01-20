@@ -7,8 +7,8 @@ import { delay } from "./utils";
 import { connect } from "../connection";
 import { config } from "../config";
 import { supportedLpResponseSchema, supportedLpResponseType, supportedLpType } from "../schemas/supportedLpResponseSchema";
+import { disconnect } from "mongoose";
 
-const dead = "0x0000000000000000000000000000000000000000";
 
 /**
  * Synchronizes data by fetching and processing pools and nitros.
@@ -48,16 +48,14 @@ export const syncData = async (): Promise<boolean> => {
     const supportedLps = supportedLpResponse.data.supportedLps;
     
     const pools = filterPools(mirrorData, supportedLps);
-    console.log(pools)
     const nitros = filterNitros(nitroData,supportedLps);
 
     
     mergePoolsAndNitros(pools, nitros);
-    console.log(pools)
-
     await processPools(pools, currentPools);
-    await deleteInactivePools(pools, currentPools);
 
+    await deleteInactivePools(pools, currentPools);
+    await disconnect();
     return true;
   } catch (error) {
     console.error("Error in syncData function: ", error);
@@ -94,10 +92,12 @@ function mergePoolsAndNitros(pools: mirrorPoolType[], nitros: nitroPoolType[]): 
 }
 
 async function processPools(pools: mirrorPoolType[], currentPools: Pool[]): Promise<void> {
+  console.log("currentPools", currentPools)
+  console.log("pools", pools)
   for (let i = 0; i < pools.length; i++) {
     try {
       console.log(`Processing pool ${i + 1}/${pools.length}`);
-      const existingPool = currentPools.find(pool => pool.address === pools[i].address);
+      const existingPool = currentPools.find(pool => pool.address.toLowerCase() === pools[i].address.toLowerCase());
       if (existingPool) {
         console.log(`Updating pool ${pools[i].depositToken}`);
         await updatePoolInDB(pools[i]);
@@ -108,12 +108,13 @@ async function processPools(pools: mirrorPoolType[], currentPools: Pool[]): Prom
     } catch (error) {
       console.error(`Error processing pool ${pools[i].depositToken}: ${error}`);
     }
+    await delay(1000);
   }
 }
 
 async function deleteInactivePools(pools: mirrorPoolType[], currentPools: Pool[]): Promise<void> {
-  const activePoolAddresses = pools.map(pool => pool.address);
-  const poolsToDelete = currentPools.filter(pool => !activePoolAddresses.includes(pool.address));
+  const activePoolAddresses = pools.map(pool => pool.address.toLowerCase());
+  const poolsToDelete = currentPools.filter(pool => !activePoolAddresses.includes(pool.address.toLowerCase()));
   console.log(`Deprecated pools: ${poolsToDelete.map(pool => pool.address)}`);
   await poolModel.deleteMany({ address: { $in: poolsToDelete.map(pool => pool.address) } });
 }

@@ -17,3 +17,10 @@ export const connect = async () => {
 
     return conn;
 };
+
+export const disconnect = async () => {
+    if (conn != null) {
+        (await conn).connection.close();
+        conn = null;        
+    }   
+}

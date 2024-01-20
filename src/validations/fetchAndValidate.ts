@@ -11,7 +11,7 @@ async function fetchAndValidate<T>(url: string, schema: z.ZodSchema<T>): Promise
     const data = await response.json();
     return schema.parse(data);
   } catch (error) {
-    console.error('Error in fetchAndValidate. url: ' + url);
+    console.error('Error in fetchAndValidate. url: ' + url + " error: " + error);
     throw error;
   }
 }

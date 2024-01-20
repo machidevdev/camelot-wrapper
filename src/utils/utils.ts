@@ -119,8 +119,9 @@ export async function updatePriceCache() {
   filtered.forEach((token) => {
     tokenPriceCache.data.set(token.address.toLowerCase(), token.price)
   })
-  const holyUsdPrice = Number(holyEthPrice) * Number(tokenPriceCache.data.get(WETH));
-  tokenPriceCache.data.set(holy.address.toLowerCase(), holyUsdPrice);
+  const holyUsdPrice = Number(holyEthPrice) * Number(tokenPriceCache.data.get(WETH) )/ Math.pow(10,18);
+  console.log(holyUsdPrice)
+  tokenPriceCache.data.set(holy.address.toLowerCase(), holyUsdPrice );
   return tokenPriceCache;
 }
 

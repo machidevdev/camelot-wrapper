@@ -45,7 +45,7 @@ functions:
     handler: src/handler.sync
     events:
       - schedule: rate(30 minutes)
-    timeout: 500 # in seconds
+    timeout: 10 # in seconds
 
 plugins:
   - serverless-esbuild
