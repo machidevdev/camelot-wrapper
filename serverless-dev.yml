@@ -46,7 +46,7 @@ functions:
   sync:
     handler: src/handler.sync
     events:
-      - schedule: rate(5 minutes)
+      - schedule: '*/5 * * * *'
     timeout: 120 # in seconds
 
   health:
