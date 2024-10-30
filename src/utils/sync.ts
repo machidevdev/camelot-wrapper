@@ -6,7 +6,7 @@ import { addPoolToDB, updatePoolInDB } from "./utils";
 import { delay } from "./utils";
 import { connect, disconnect } from "../connection";
 import { config } from "../config";
-import { supportedLpResponseSchema, supportedLpResponseType, supportedLpType } from "../schemas/supportedLpResponseSchema";
+import { supportedLpResponseSchema, supportedLpType } from "../schemas/supportedLpResponseSchema";
 
 
 /**
